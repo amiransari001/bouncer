@@ -238,7 +238,6 @@ int main(int argc, char *argv[])
     while(av_read_frame(pFormatCtx, &packet)>=0) 
     {
       // Is this a packet from the video stream?
-<<<<<<< HEAD
       if(packet.stream_index==videoStream) 
       {
         // Decode video frame
@@ -260,26 +259,6 @@ int main(int argc, char *argv[])
             SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
           
 	      }
-=======
-      if(packet.stream_index==videoStream) {
-	// Decode video frame
-	avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
-    
-	// Did we get a video frame?
-	if(frameFinished) {
-	  // Convert the image from its native format to RGB
-	  sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
-		    pFrame->linesize, 0, pCodecCtx->height,
-		    pFrameRGB->data, pFrameRGB->linesize);
-	
-	  // Save the frame to disk
-	  if(++i<=5)
-	  {
-            //SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
-	    SaveFrameCool(pFrameRGB, pCodecCtx, i);
-	  }
-	}
->>>>>>> a244e764b34fec3dc95d118515db51e6096fb176
       }
     
       // Free the packet that was allocated by av_read_frame
