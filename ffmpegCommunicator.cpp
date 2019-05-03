@@ -13,10 +13,19 @@ using namespace std;
 
 void DrawBall(AVFrame *pFrame, int width, int height, int iFrame) 
 {
-  int radius = width/10;
+  int radius = 0; 
+
+  if (width < height)
+  {
+      radius = width/10;
+  }
+  else
+  {
+      radius = height/10;
+  }
 
   int ballX = width/2;
-  int ballY = -1 * cos(iFrame) * (height/8*3) + (height/4*3);
+  int ballY = -1 * cos(iFrame) * (height/8*3 - radius) + (height/4*3);
 
   for (int y = 0; y < height; y++)
   {
