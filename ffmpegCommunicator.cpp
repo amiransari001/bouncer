@@ -16,6 +16,7 @@ void DrawBall(AVFrame *pFrame, int width, int height, int iFrame)
 {
   int radius = 0; 
 
+  // Makes ball size proportional to smallest dimension. 
   if (width < height)
   {
       radius = width/10;
