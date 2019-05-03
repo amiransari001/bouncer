@@ -39,9 +39,15 @@ void DrawBall(AVFrame *pFrame, int width, int height, int iFrame)
 
       if (distance <= radius)
       {
-          pFrame->data[0][offset + 0] = 0; // R
-          pFrame->data[0][offset + 1] = 0; // G
-          pFrame->data[0][offset + 2] = 0; // B
+        int shadeX = ballX + (radius/2);
+        int shadeY = ballY - (radius/2);
+
+        int shadeDegree = sqrt(pow(shadeX - x, 2) + pow(shadeY - y, 2));
+        shadeDegree = (radius*2) - shadeDegree;
+        
+        pFrame->data[0][offset + 0] = shadeDegree; // R
+        pFrame->data[0][offset + 1] = shadeDegree; // G
+        pFrame->data[0][offset + 2] = shadeDegree; // B
       } 
       
     }
