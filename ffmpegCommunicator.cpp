@@ -9,7 +9,38 @@ extern "C"
     #include "../ffmpeg/libswscale/swscale.h"
 }
 
-using namespace std; 
+using namespace std;
+
+void DrawBall(AVFrame *pFrame, int width, int height, int iFrame, int ballX, int ballY) 
+{
+
+  for (y = 0; y < height; y++) 
+  {
+    for (x = 0; x < width; x++) 
+    {
+      // int offset = 3 * (x + y * c->width);
+
+      if (x > 2* > width / 3 && x < width )
+      {
+          frame->data[0][offset + 0] = 0; // B
+          frame->data[0][offset + 1] = 0; // G
+          frame->data[0][offset + 2] = 255; // R
+      } 
+      else if(x < 2 * width / 3 && x > width / 3) 
+      {
+          frame->data[0][offset + 0] = 0; // B
+          frame->data[0][offset + 1] = 255; // G
+          frame->data[0][offset + 2] = 0; // R
+      }
+      else 
+      {
+          frame->data[0][offset + 0] = 255; // B
+          frame->data[0][offset + 1] = 0; // G
+          frame->data[0][offset + 2] = 0; // R
+      }
+    }
+  }
+}
 
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) 
 {
