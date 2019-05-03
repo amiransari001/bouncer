@@ -54,14 +54,14 @@ void DrawBall(AVFrame *pFrame, int width, int height, int iFrame)
   }
 }
 
-/*void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) 
+void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) 
 {
   FILE *pFile;
   char szFilename[32];
   int  y;
   
   // Open file
-  sprintf(szFilename, "frames/frame%d.ppm", iFrame);
+  sprintf(szFilename, "frame%d.ppm", iFrame);
   pFile=fopen(szFilename, "wb");
   if(pFile==NULL)
     return;
@@ -77,7 +77,7 @@ void DrawBall(AVFrame *pFrame, int width, int height, int iFrame)
   
   // Close file
   fclose(pFile);
-}*/
+}
 
 void SaveFrameCool(AVFrame *pFrame, AVCodecContext *otherCtx, int iFrame) 
 {
@@ -112,8 +112,6 @@ void SaveFrameCool(AVFrame *pFrame, AVCodecContext *otherCtx, int iFrame)
   av_packet.size == 0;
 
   std::cout << "Pre-fault" << std::endl;
-
- 
 
   //Encode the data
   int out_size = avcodec_encode_video2(av_context, &av_packet, pFrame, gotPkt);
@@ -241,33 +239,44 @@ int main(int argc, char *argv[])
 			     NULL,
 			     NULL);
 
-    i=0;
     // What does this while loop do.
     while(av_read_frame(pFormatCtx, &packet)>=0) 
-    {
-      // Is this a packet from the video stream?
-      if(packet.stream_index==videoStream) 
       {
-        // Decode video frame
-        avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
+	// Is this a packet from the video stream?
+	if(packet.stream_index==videoStream) 
+	  {
+	    // Decode video frame
+	    avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
           
-        // Did we get a video frame?
-        if(frameFinished) 
-        {
-          // Convert the image from its native format to RGB
-          sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
-              pFrame->linesize, 0, pCodecCtx->height,
-              pFrameRGB->data, pFrameRGB->linesize);
+	    // Did we get a video frame?
+	    if(frameFinished) 
+	      {
+		// Convert the image from its native format to RGB
+		sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
+			  pFrame->linesize, 0, pCodecCtx->height,
+			  pFrameRGB->data, pFrameRGB->linesize);
+		for(i = 0; i<300; i++)
+		{
+		  AVFrame *drawPrintFrame = av_frame_alloc();
+		  numBytes=avpicture_get_size(AV_PIX_FMT_RGB24, pCodecCtx->width, pCodecCtx->height);
+		  buffer=(uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
 
-          DrawBall(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
-	  SaveFrameCool(pFrameRGB, pCodecCtx, i);
+		  avpicture_fill((AVPicture *)drawPrintFrame, buffer, AV_PIX_FMT_RGB24,
+				 pCodecCtx->width, pCodecCtx->height);
+		  avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
+		  sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
+			    pFrame->linesize, 0, pCodecCtx->height,
+			    drawPrintFrame->data, drawPrintFrame->linesize);
+		  DrawBall(drawPrintFrame, pCodecCtx->width, pCodecCtx->height, i);
+		  SaveFrame(drawPrintFrame, pCodecCtx->width, pCodecCtx->height, i);
+		}
           
-	}
-      }
+	      }
+	  }
     
-      // Free the packet that was allocated by av_read_frame
-      av_free_packet(&packet);
-    }
+	// Free the packet that was allocated by av_read_frame
+	av_free_packet(&packet);
+      }
 
     // Free the RGB image
     av_free(buffer);
