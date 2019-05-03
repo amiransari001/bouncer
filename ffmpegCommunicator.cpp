@@ -54,7 +54,7 @@ void DrawBall(AVFrame *pFrame, int width, int height, int iFrame)
   }
 }
 
-void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) 
+/*void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) 
 {
   FILE *pFile;
   char szFilename[32];
@@ -77,7 +77,7 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame)
   
   // Close file
   fclose(pFile);
-}
+}*/
 
 void SaveFrameCool(AVFrame *pFrame, AVCodecContext *otherCtx, int iFrame) 
 {
@@ -111,7 +111,9 @@ void SaveFrameCool(AVFrame *pFrame, AVCodecContext *otherCtx, int iFrame)
   av_packet.data = NULL;
   av_packet.size == 0;
 
-  fflush(stdout);
+  std::cout << "Pre-fault" << std::endl;
+
+ 
 
   //Encode the data
   int out_size = avcodec_encode_video2(av_context, &av_packet, pFrame, gotPkt);
@@ -258,13 +260,9 @@ int main(int argc, char *argv[])
               pFrameRGB->data, pFrameRGB->linesize);
 
           DrawBall(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
-
-        
-          // Save the frame to disk
-          //if(++i<=5)
-            SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
+	  SaveFrameCool(pFrameRGB, pCodecCtx, i);
           
-	      }
+	}
       }
     
       // Free the packet that was allocated by av_read_frame
