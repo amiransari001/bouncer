@@ -4,9 +4,10 @@
 
 extern "C"
 {
-    #include "../ffmpeg/libavcodec/avcodec.h"
-    #include "../ffmpeg/libavformat/avformat.h"
-    #include "../ffmpeg/libswscale/swscale.h"
+#include "../ffmpeg/libavcodec/avcodec.h"
+#include "../ffmpeg/libavformat/avformat.h"
+#include "../ffmpeg/libswscale/swscale.h"
+#include "../ffmpeg/libavutil/imgutils.h"
 }
 
 using namespace std;
@@ -63,7 +64,57 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame)
   
   // Write pixel data
   for(y=0; y<height; y++)
+  {
     fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
+  }
+  
+  // Close file
+  fclose(pFile);
+}
+
+void SaveFrameCool(AVFrame *pFrame, AVCodecContext *otherCtx, int iFrame) 
+{
+  //Initializing Variables
+  AVCodec *codec;
+  AVCodecContext *av_context = NULL;
+  AVPacket av_packet;
+  int *gotPkt;
+  AVFrame *frame;
+  FILE *pFile;
+  char szFilename[32];
+
+  //Getting the codec and context set up
+  codec = avcodec_find_encoder(AV_CODEC_ID_COOL);
+  av_context = avcodec_alloc_context3(codec);
+  
+  //Setting values for context
+  av_context->width = otherCtx->width;
+  av_context->height = otherCtx->height;
+  av_context-> time_base= (AVRational){1,25};
+  av_context->pix_fmt = AV_PIX_FMT_RGB24;
+
+  avcodec_open2(av_context, codec, NULL);
+
+  // Open file
+  sprintf(szFilename, "frames/coolFrame%d.cool", iFrame);
+  pFile = fopen(szFilename, "wb");
+
+  //Initialize packet info
+  av_init_packet(&av_packet);
+  av_packet.data = NULL;
+  av_packet.size == 0;
+
+  fflush(stdout);
+
+  //Encode the data
+  int out_size = avcodec_encode_video2(av_context, &av_packet, pFrame, gotPkt);
+
+  //Write the data
+  if(gotPkt)
+  {
+    fwrite(av_packet.data, 1, av_packet.size, pFile);
+    av_free_packet(&av_packet);
+  }
   
   // Close file
   fclose(pFile);
@@ -186,6 +237,7 @@ int main(int argc, char *argv[])
     while(av_read_frame(pFormatCtx, &packet)>=0) 
     {
       // Is this a packet from the video stream?
+<<<<<<< HEAD
       if(packet.stream_index==videoStream) 
       {
         // Decode video frame
@@ -207,6 +259,26 @@ int main(int argc, char *argv[])
             SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
           
 	      }
+=======
+      if(packet.stream_index==videoStream) {
+	// Decode video frame
+	avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
+    
+	// Did we get a video frame?
+	if(frameFinished) {
+	  // Convert the image from its native format to RGB
+	  sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
+		    pFrame->linesize, 0, pCodecCtx->height,
+		    pFrameRGB->data, pFrameRGB->linesize);
+	
+	  // Save the frame to disk
+	  if(++i<=5)
+	  {
+            //SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
+	    SaveFrameCool(pFrameRGB, pCodecCtx, i);
+	  }
+	}
+>>>>>>> a244e764b34fec3dc95d118515db51e6096fb176
       }
     
       // Free the packet that was allocated by av_read_frame
