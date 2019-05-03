@@ -11,33 +11,28 @@ extern "C"
 
 using namespace std;
 
-void DrawBall(AVFrame *pFrame, int width, int height, int iFrame, int ballX, int ballY) 
+void DrawBall(AVFrame *pFrame, int width, int height, int iFrame) 
 {
+  int radius = width/10;
 
-  for (y = 0; y < height; y++) 
+  int ballX = width/2;
+  int ballY = -1 * cos(iFrame) * (height/8*3) + (height/4*3);
+
+  for (int y = 0; y < height; y++)
   {
-    for (x = 0; x < width; x++) 
+    for (int x = 0; x < width; x++)
     {
-      // int offset = 3 * (x + y * c->width);
+      int offset = 3 * (x + y * width);
 
-      if (x > 2* > width / 3 && x < width )
+      int distance = sqrt(pow(ballX - x, 2) + pow(ballY - y, 2));
+
+      if (distance <= radius)
       {
-          frame->data[0][offset + 0] = 0; // B
-          frame->data[0][offset + 1] = 0; // G
-          frame->data[0][offset + 2] = 255; // R
+          pFrame->data[0][offset + 0] = 0; // R
+          pFrame->data[0][offset + 1] = 0; // G
+          pFrame->data[0][offset + 2] = 0; // B
       } 
-      else if(x < 2 * width / 3 && x > width / 3) 
-      {
-          frame->data[0][offset + 0] = 0; // B
-          frame->data[0][offset + 1] = 255; // G
-          frame->data[0][offset + 2] = 0; // R
-      }
-      else 
-      {
-          frame->data[0][offset + 0] = 255; // B
-          frame->data[0][offset + 1] = 0; // G
-          frame->data[0][offset + 2] = 0; // R
-      }
+      
     }
   }
 }
@@ -178,24 +173,31 @@ int main(int argc, char *argv[])
 			     NULL);
 
     i=0;
+    // What does this while loop do.
     while(av_read_frame(pFormatCtx, &packet)>=0) 
     {
       // Is this a packet from the video stream?
-      if(packet.stream_index==videoStream) {
-	// Decode video frame
-	avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
-    
-	// Did we get a video frame?
-	if(frameFinished) {
-	  // Convert the image from its native format to RGB
-	  sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
-		    pFrame->linesize, 0, pCodecCtx->height,
-		    pFrameRGB->data, pFrameRGB->linesize);
-	
-	  // Save the frame to disk
-	  if(++i<=5)
-	    SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
-	}
+      if(packet.stream_index==videoStream) 
+      {
+        // Decode video frame
+        avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
+          
+        // Did we get a video frame?
+        if(frameFinished) 
+        {
+          // Convert the image from its native format to RGB
+          sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
+              pFrame->linesize, 0, pCodecCtx->height,
+              pFrameRGB->data, pFrameRGB->linesize);
+
+          DrawBall(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
+
+        
+          // Save the frame to disk
+          //if(++i<=5)
+            SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, i);
+          
+	      }
       }
     
       // Free the packet that was allocated by av_read_frame
